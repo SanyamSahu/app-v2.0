@@ -1,0 +1,2 @@
+app.zip filter=lfs diff=lfs merge=lfs -text
+app[[:space:]]v2.zip filter=lfs diff=lfs merge=lfs -text
