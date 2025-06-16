@@ -1,7 +1,4 @@
-/**
- * DO NOT import this file from client components or browser code.
- * This file is for server-side use only! (e.g. Next.js API routes, server actions, etc.)
- */
+
 if (typeof window !== "undefined") {
   throw new Error("src/lib/db.ts cannot be imported from client-side code!");
 }

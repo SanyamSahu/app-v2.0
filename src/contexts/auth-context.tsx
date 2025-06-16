@@ -45,29 +45,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(async (username: string, password: string): Promise<User | null> => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/validate', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
-      const data = await res.json();
-      if (!data.success || !data.credentials) {
+  
+      if (!res.ok) {
         setLoading(false);
         return null;
       }
-
-      // Optionally, fetch full user profile via another API route if you want details (not shown here)
-      // For now, just use returned credentials object:
-      setUser(data.credentials);
-      localStorage.setItem('authUser', JSON.stringify(data.credentials));
+  
+      const user: User = await res.json();
+  
+      setUser(user);
+      localStorage.setItem('authUser', JSON.stringify(user));
       setLoading(false);
-      return data.credentials;
+      return user;
     } catch (error) {
       console.error("Login error:", error);
       setLoading(false);
       return null;
     }
   }, []);
+  
 
   const logout = useCallback(() => {
     setUser(null);

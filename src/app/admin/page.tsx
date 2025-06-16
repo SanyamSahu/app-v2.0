@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ProtectedRoute from '@/components/protected-route';
-import { MOCK_ACCOUNTS, MOCK_USER_DETAILS } from '@/data/mock';
+// import { MOCK_ACCOUNTS, MOCK_USER_DETAILS } from '@/data/mock';
 import type { Account, UserDetail, Transaction } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,8 +19,51 @@ import { useToast } from "@/hooks/use-toast";
 
 
 export default function AdminPage() {
-  const [allAccounts, setAllAccounts] = useState<Account[]>(MOCK_ACCOUNTS); 
-  const [allUsers, setAllUsers] = useState<UserDetail[]>(MOCK_USER_DETAILS);
+  // const [allAccounts, setAllAccounts] = useState<Account[]>(MOCK_ACCOUNTS); 
+  // const [allUsers, setAllUsers] = useState<UserDetail[]>(MOCK_USER_DETAILS);
+  const [allAccounts, setAllAccounts] = useState<Account[]>([]);
+  const [allUsers, setAllUsers] = useState<UserDetail[]>([]);
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const res = await fetch('/api/accounts');
+        if (!res.ok) throw new Error('Failed to fetch accounts');
+        const data = await res.json();
+        setAllAccounts(data);
+      } catch (err) {
+        console.error('Error loading accounts:', err);
+        toast({
+          title: "Error",
+          description: "Unable to load accounts from server.",
+          variant: "destructive",
+        });
+      }
+    };
+  
+    fetchAccounts();
+  }, []);
+  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+        const data = await res.json();
+        setAllUsers(data);
+      } catch (err) {
+        console.error('Error loading users:', err);
+        toast({
+          title: "Error",
+          description: "Unable to load users from server.",
+          variant: "destructive",
+        });
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+  
   
   const [dateRangeGlobal, setDateRangeGlobal] = useState<DateRange | undefined>(undefined); // For global account view (if used for filtering creation date)
   const [searchTerm, setSearchTerm] = useState('');
@@ -237,14 +280,14 @@ export default function AdminPage() {
           const balance = parseFloat(accountDataRow.balance);
           if (isNaN(balance)) {
             console.warn(`Skipping row ${i+1} due to invalid balance: ${lines[i]}`);
-            toast({ title: "Parsing Warning", description: `Invalid balance for account ${accountDataRow.accountNumber || `in row ${i+1}`} in CSV. Row skipped.`, variant: "warning" });
+            toast({ title: "Parsing Warning", description: `Invalid balance for account ${accountDataRow.accountNumber || `in row ${i+1}`} in CSV. Row skipped.`, variant: "warning" as "default" });
             parsingErrors++;
             continue;
           }
 
           if (!accountDataRow.id || !accountDataRow.accountNumber || !accountDataRow.holderName || !accountDataRow.currency || !accountDataRow.type || !accountDataRow.userId) {
             console.warn(`Skipping row ${i+1} due to missing required fields: ${lines[i]}`);
-            toast({ title: "Parsing Warning", description: `Missing required fields for an account in row ${i+1} of CSV. Row skipped.`, variant: "warning" });
+            toast({ title: "Parsing Warning", description: `Missing required fields for an account in row ${i+1} of CSV. Row skipped.`, variant: "warning" as "default" });
             parsingErrors++;
             continue;
           }
