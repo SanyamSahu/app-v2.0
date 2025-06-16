@@ -3,7 +3,10 @@
 import type { User } from '@/types';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUserByUsername, validateUserCredentials, updateUserPassword } from '@/lib/user-db';
+/*
+// Removed server-only imports that caused mysql2 error!
+// import { getUserByUsername, validateUserCredentials, updateUserPassword } from '@/lib/user-db';
+*/
 
 interface AuthContextType {
   user: User | null;
@@ -38,29 +41,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
+  // Refactored: call API route instead of direct DB access!
   const login = useCallback(async (username: string, password: string): Promise<User | null> => {
     setLoading(true);
     try {
-      // First validate credentials
-      const credentials = await validateUserCredentials(username, password);
-      if (!credentials) {
+      const res = await fetch('/api/auth/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!data.success || !data.credentials) {
         setLoading(false);
         return null;
       }
 
-      // If credentials are valid, get the full user data
-      const userData = await getUserByUsername(username);
-      if (userData) {
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-        return userData;
-      }
+      // Optionally, fetch full user profile via another API route if you want details (not shown here)
+      // For now, just use returned credentials object:
+      setUser(data.credentials);
+      localStorage.setItem('authUser', JSON.stringify(data.credentials));
+      setLoading(false);
+      return data.credentials;
     } catch (error) {
       console.error("Login error:", error);
+      setLoading(false);
+      return null;
     }
-    
-    setLoading(false);
-    return null;
   }, []);
 
   const logout = useCallback(() => {
@@ -69,25 +75,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     router.push('/login');
   }, [router]);
 
+  // Refactored: call a password API route (must be created, e.g. /api/auth/change-password)
   const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
     if (!user) {
       return { success: false, message: 'No user logged in' };
     }
 
     try {
-      // Validate current password
-      const isValid = await validateUserCredentials(user.username, currentPassword);
-      if (!isValid) {
-        return { success: false, message: 'Current password is incorrect' };
-      }
-
-      // Update password
-      const updated = await updateUserPassword(user.id, newPassword);
-      if (updated) {
-        return { success: true, message: 'Password updated successfully' };
-      } else {
-        return { success: false, message: 'Failed to update password' };
-      }
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, currentPassword, newPassword }),
+      });
+      return await res.json();
     } catch (error) {
       console.error('Change password error:', error);
       return { success: false, message: 'An error occurred while changing password' };

@@ -1,3 +1,11 @@
+/**
+ * DO NOT import this file from client components or browser code.
+ * This file is for server-side use only! (e.g. Next.js API routes, server actions, etc.)
+ */
+if (typeof window !== "undefined") {
+  throw new Error("src/lib/db.ts cannot be imported from client-side code!");
+}
+
 import mysql from 'mysql2/promise';
 
 // Database connection configuration
@@ -5,8 +13,8 @@ const dbConfig = {
   host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '3306'),
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'Root@123',
-  database: process.env.DB_NAME || 'MySql',
+  password: process.env.DB_PASSWORD || '1234',
+  database: process.env.DB_NAME || 'AccountDB',
 };
 
 // Create a connection pool
