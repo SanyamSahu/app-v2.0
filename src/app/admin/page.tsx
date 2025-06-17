@@ -27,9 +27,16 @@ export default function AdminPage() {
     const fetchAccounts = async () => {
       try {
         const res = await fetch('/api/accounts');
-        if (!res.ok) throw new Error('Failed to fetch accounts');
-        const data = await res.json();
-        setAllAccounts(data);
+const rawData = await res.json();
+
+const parsedData = rawData.map((acc: any) => ({
+  ...acc,
+  balance: parseFloat(acc.balance),
+  transactions: acc.transactions || [],
+}));
+
+setAllAccounts(parsedData);
+
       } catch (err) {
         console.error('Error loading accounts:', err);
         toast({
