@@ -77,23 +77,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [router]);
 
   // Refactored: call a password API route (must be created, e.g. /api/auth/change-password)
-  const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
-    if (!user) {
-      return { success: false, message: 'No user logged in' };
-    }
-
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user) return { success: false, message: "User not authenticated." };
+  
+    const res = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.id,
+        currentPassword,
+        newPassword
+      })
+    });
+  
     try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, currentPassword, newPassword }),
-      });
-      return await res.json();
-    } catch (error) {
-      console.error('Change password error:', error);
-      return { success: false, message: 'An error occurred while changing password' };
+      const data = await res.json();
+      return data;
+    } catch {
+      return { success: false, message: 'Invalid server response.' };
     }
-  }, [user]);
+  };
+  
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, changePassword }}>
