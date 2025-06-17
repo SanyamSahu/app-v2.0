@@ -27,7 +27,14 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/accounts');
         if (!res.ok) throw new Error('Failed to fetch accounts');
-        const allAccounts: Account[] = await res.json();
+        const allAccountsRaw: any[] = await res.json();
+
+        const allAccounts: Account[] = allAccountsRaw.map((acc) => ({
+          ...acc,
+          balance: parseFloat(acc.balance), // Ensure balance is a number
+          transactions: acc.transactions || [], // Ensure transactions is at least an empty array
+        }));
+
   
         if (user && Array.isArray(user.accounts)) {
           const userAccountIds = user.accounts; // ✅ Now TypeScript knows it's defined
@@ -62,8 +69,10 @@ export default function DashboardPage() {
   }, [userAccounts, selectedAccountId]);
 
   const filteredTransactions = useMemo(() => {
-    if (!selectedAccount) return [];
+    if (!selectedAccount || !Array.isArray(selectedAccount.transactions)) return [];
+  
     let transactions = selectedAccount.transactions;
+  
     if (dateRange?.from) {
       transactions = transactions.filter(t => new Date(t.date) >= dateRange.from!);
     }
@@ -75,8 +84,10 @@ export default function DashboardPage() {
         return transactionDate <= toDate;
       });
     }
-    return transactions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+    return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [selectedAccount, dateRange]);
+  
 
   const downloadFile = (content: string, fileName: string, mimeType: string) => {
     const blob = new Blob([content], { type: mimeType });
