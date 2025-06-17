@@ -287,14 +287,14 @@ setAllAccounts(parsedData);
           const balance = parseFloat(accountDataRow.balance);
           if (isNaN(balance)) {
             console.warn(`Skipping row ${i+1} due to invalid balance: ${lines[i]}`);
-            toast({ title: "Parsing Warning", description: `Invalid balance for account ${accountDataRow.accountNumber || `in row ${i+1}`} in CSV. Row skipped.`, variant: "warning" as "default" });
+            toast({ title: "Parsing Warning", description: `Invalid balance for account ${accountDataRow.accountNumber || `in row ${i+1}`} in CSV. Row skipped.`, variant:  "default" });
             parsingErrors++;
             continue;
           }
 
           if (!accountDataRow.id || !accountDataRow.accountNumber || !accountDataRow.holderName || !accountDataRow.currency || !accountDataRow.type || !accountDataRow.userId) {
             console.warn(`Skipping row ${i+1} due to missing required fields: ${lines[i]}`);
-            toast({ title: "Parsing Warning", description: `Missing required fields for an account in row ${i+1} of CSV. Row skipped.`, variant: "warning" as "default" });
+            toast({ title: "Parsing Warning", description: `Missing required fields for an account in row ${i+1} of CSV. Row skipped.`, variant: "default" });
             parsingErrors++;
             continue;
           }
@@ -318,65 +318,57 @@ setAllAccounts(parsedData);
             return;
         }
         
-        setAllAccounts(prevAccounts => {
-          const accountsMap = new Map<string, Account>(prevAccounts.map(acc => [acc.id, acc]));
-          let updatedMatchingDataCount = 0;
-          let skippedMismatchDataCount = 0;
-          let newAccountsAddedCount = 0;
+        let toastQueue: { title: string; description: string; variant?: "default" | "destructive"; duration?: number }[] = [];
 
-          newAccountsFromCsv.forEach(csvAcc => {
-            const existingAccount = accountsMap.get(csvAcc.id);
+setAllAccounts((prevAccounts: Account[]) => {
+  const accountsMap = new Map<string, Account>(prevAccounts.map(acc => [acc.id, acc]));
+  let updatedMatchingDataCount = 0;
+  let skippedMismatchDataCount = 0;
+  let newAccountsAddedCount = 0;
 
-            if (existingAccount) {
-              const coreFieldsMatch =
-                existingAccount.accountNumber === csvAcc.accountNumber &&
-                existingAccount.holderName === csvAcc.holderName &&
-                existingAccount.balance === csvAcc.balance &&
-                existingAccount.currency === csvAcc.currency &&
-                existingAccount.type === csvAcc.type &&
-                existingAccount.userId === csvAcc.userId;
+  newAccountsFromCsv.forEach(csvAcc => {
+    const existingAccount = accountsMap.get(csvAcc.id);
 
-              if (coreFieldsMatch) {
-                accountsMap.set(csvAcc.id, csvAcc); // transactions are reset
-                updatedMatchingDataCount++;
-              } else {
-                skippedMismatchDataCount++; // original preserved
-              }
-            } else {
-              accountsMap.set(csvAcc.id, csvAcc);
-              newAccountsAddedCount++;
-            }
-          });
-          
-          const messageParts: string[] = [];
-          if (newAccountsAddedCount > 0) messageParts.push(`${newAccountsAddedCount} new accounts added`);
-          if (updatedMatchingDataCount > 0) messageParts.push(`${updatedMatchingDataCount} existing accounts updated (data matched, transactions reset)`);
-          if (skippedMismatchDataCount > 0) messageParts.push(`${skippedMismatchDataCount} existing accounts skipped (data mismatch, original preserved)`);
-          
-          let finalDescription = `Processed ${newAccountsFromCsv.length} data rows from ${file?.name || 'file'}.`;
-          if (messageParts.length > 0) {
-            finalDescription += ` Results: ${messageParts.join(', ')}.`;
-          } else if (newAccountsFromCsv.length > 0) {
-            finalDescription += " No changes applied to account data.";
-          } else if (newAccountsFromCsv.length === 0 && parsingErrors === 0 && lines.length > 1) {
-             finalDescription = `File ${file?.name || 'file'} contained a header but no data rows.`;
-          }
+    if (existingAccount) {
+      const coreFieldsMatch =
+        existingAccount.accountNumber === csvAcc.accountNumber &&
+        existingAccount.holderName === csvAcc.holderName &&
+        existingAccount.balance === csvAcc.balance &&
+        existingAccount.currency === csvAcc.currency &&
+        existingAccount.type === csvAcc.type &&
+        existingAccount.userId === csvAcc.userId;
 
-          if (parsingErrors > 0) {
-            finalDescription += ` ${parsingErrors} CSV rows skipped due to parsing errors.`;
-          }
+      if (coreFieldsMatch) {
+        accountsMap.set(csvAcc.id, csvAcc); // reset
+        updatedMatchingDataCount++;
+      } else {
+        skippedMismatchDataCount++;
+      }
+    } else {
+      accountsMap.set(csvAcc.id, csvAcc);
+      newAccountsAddedCount++;
+    }
+  });
 
-           if (newAccountsFromCsv.length > 0 || (parsingErrors > 0 && newAccountsFromCsv.length === 0)) {
-             toast({ 
-                title: "CSV Upload Processed", 
-                description: finalDescription,
-                duration: 8000 
-             });
-           } else if (newAccountsFromCsv.length === 0 && parsingErrors === 0 && lines.length > 1 && !(lines.length > 1 && parsingErrors === (lines.length -1))) {
-              toast({ title: "CSV Info", description: `File ${file?.name || 'file'} had a header but no processable data rows.`, duration: 5000});
-           }
-          return Array.from(accountsMap.values());
-        });
+  const messageParts: string[] = [];
+  if (newAccountsAddedCount > 0) messageParts.push(`${newAccountsAddedCount} new accounts added`);
+  if (updatedMatchingDataCount > 0) messageParts.push(`${updatedMatchingDataCount} updated`);
+  if (skippedMismatchDataCount > 0) messageParts.push(`${skippedMismatchDataCount} skipped`);
+
+  toastQueue.push({
+    title: "CSV Upload Processed",
+    description: `Processed ${newAccountsFromCsv.length} rows. ${messageParts.join(', ')}`,
+    duration: 8000
+  });
+
+  return Array.from(accountsMap.values());
+});
+
+// ✅ Flush toasts after state update
+setTimeout(() => {
+  toastQueue.forEach(t => toast(t));
+}, 0);
+
 
       } catch (error) {
         console.error("Error processing CSV:", error);
