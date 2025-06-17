@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 
 export interface Transaction {
   id: string;
@@ -30,6 +31,7 @@ export interface UserLoginCredential {
 
 // Represents table 2: User Details
 export interface UserDetail {
+  username: string;
   id: string; // Primary key, same as UserLoginCredential.id
   name: string; 
   contact?: string; 

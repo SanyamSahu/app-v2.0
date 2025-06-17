@@ -22,6 +22,8 @@ export default function ChangePasswordPage() {
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (isLoading) return;
+
     e.preventDefault();
     setIsLoading(true);
 
@@ -107,7 +109,7 @@ export default function ChangePasswordPage() {
                   type="password"
                   placeholder="Enter your new password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e) => setNewPassword(e.target.value.trimStart())}
                   required
                   className="text-base"
                 />

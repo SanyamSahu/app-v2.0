@@ -35,7 +35,7 @@ export default function ProfilePage() {
           <CardHeader className="items-center text-center">
             <Avatar className="h-24 w-24 mb-4 ring-2 ring-primary ring-offset-2 ring-offset-background">
               <AvatarImage 
-                src={`https://placehold.co/100x100.png?text=${user.username.charAt(0).toUpperCase()}`} 
+                src={`https://placehold.co/100x100.png?text=${user.username.charAt(0).toUpperCase() || '?'}`} 
                 alt={user.username} 
                 data-ai-hint="user avatar large"
               />

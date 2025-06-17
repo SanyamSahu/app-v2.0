@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ProtectedRoute from '@/components/protected-route';
 import { useAuth } from '@/contexts/auth-context';
-import { MOCK_ACCOUNTS } from '@/data/mock';
 import type { Account, Transaction } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,17 +23,39 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && user.accounts) {
-      const accounts = MOCK_ACCOUNTS.filter(acc => user.accounts!.includes(acc.id));
-      setUserAccounts(accounts);
-      if (accounts.length > 0 && !selectedAccountId) {
-        setSelectedAccountId(accounts[0].id);
+    const fetchAccounts = async () => {
+      try {
+        const res = await fetch('/api/accounts');
+        if (!res.ok) throw new Error('Failed to fetch accounts');
+        const allAccounts: Account[] = await res.json();
+  
+        if (user && Array.isArray(user.accounts)) {
+          const userAccountIds = user.accounts; // ✅ Now TypeScript knows it's defined
+          const accounts = allAccounts.filter(acc => userAccountIds.includes(acc.id));
+          setUserAccounts(accounts);
+          if (accounts.length > 0 && !selectedAccountId) {
+            setSelectedAccountId(accounts[0].id);
+          }
+        } else {
+          setUserAccounts([]);
+          setSelectedAccountId(undefined);
+        }
+        
+      } catch (error) {
+        console.error('Error loading user accounts:', error);
+        toast({
+          title: "Error",
+          description: "Unable to load your accounts from the server.",
+          variant: "destructive",
+        });
       }
-    } else if (user && user.role === 'user' && !user.accounts) {
-        setUserAccounts([]);
-        setSelectedAccountId(undefined);
+    };
+  
+    if (user?.role === 'user') {
+      fetchAccounts();
     }
-  }, [user, selectedAccountId]);
+  }, [user]);
+  
 
   const selectedAccount = useMemo(() => {
     return userAccounts.find(acc => acc.id === selectedAccountId);

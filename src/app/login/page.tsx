@@ -30,6 +30,7 @@ export default function LoginPage() {
   }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (isLoading) return;
     e.preventDefault();
     setIsLoading(true);
     try {
@@ -86,10 +87,11 @@ export default function LoginPage() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                autoComplete="username"
                 type="text"
                 placeholder="e.g., alice or admin"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.trimStart())}
                 required
                 className="text-base"
               />
@@ -99,6 +101,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
