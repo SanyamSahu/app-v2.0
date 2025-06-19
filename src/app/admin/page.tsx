@@ -15,6 +15,7 @@ import type { DateRange } from 'react-day-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileSpreadsheet, FileText, Upload, Users, Filter, ShieldAlert, Loader2, User, Mail, Phone, Home as HomeIcon, ListChecks } from 'lucide-react';
 import { format } from 'date-fns';
+import CreateTransactionForm from '@/components/CreateTransactionForm';
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -652,6 +653,19 @@ setTimeout(() => {
             </CardFooter>
           )}
         </Card>
+          
+          <Card className="shadow-lg">
+  <CardHeader>
+    <CardTitle className="text-xl font-semibold text-primary flex items-center">
+      <Upload className="mr-2 h-6 w-6" /> Add Manual Transaction
+    </CardTitle>
+    <CardDescription>Use the form below to manually add a transaction to any account.</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <CreateTransactionForm />
+  </CardContent>
+</Card>
+
 
         <Card className="shadow-lg">
           <CardHeader>
