@@ -23,60 +23,62 @@ export default function AdminPage() {
  
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [allUsers, setAllUsers] = useState<UserDetail[]>([]);
-  useEffect(() => {
-  const fetchAccounts = async () => {
-    try {
-      const res = await fetch('/api/accounts');
-      const rawData = await res.json();
+const fetchAccounts = async () => {
+  try {
+    const res = await fetch('/api/accounts');
+    const rawData = await res.json();
 
-      const parsedData = rawData.map((acc: any) => ({
-        ...acc,
-        balance: parseFloat(acc.balance),
-        transactions: (acc.transactions || []).map((tx: any) => ({
-          id: tx.id || tx.transactionId, // support both
-          date: tx.date,
-          description: tx.description,
-          amount: parseFloat(tx.amount),
-          type: tx.type || tx.transactionType,
-          currency: tx.currency || tx.transactionCurrency,
-        })),
-      }));
+    const parsedData = rawData.map((acc: any) => ({
+      ...acc,
+      balance: parseFloat(acc.balance),
+      transactions: (acc.transactions || []).map((tx: any) => ({
+        id: tx.id || tx.transactionId,
+        date: tx.date,
+        description: tx.description,
+        amount: parseFloat(tx.amount),
+        type: tx.type || tx.transactionType,
+        currency: tx.currency || tx.transactionCurrency,
+      })),
+    }));
 
-      setAllAccounts(parsedData);
-    } catch (err) {
-      console.error('Error loading accounts:', err);
-      toast({
-        title: "Error",
-        description: "Unable to load accounts from server.",
-        variant: "destructive",
-      });
-    }
-  };
+    setAllAccounts(parsedData);
+  } catch (err) {
+    console.error('Error loading accounts:', err);
+    toast({
+      title: "Error",
+      description: "Unable to load accounts from server.",
+      variant: "destructive",
+    });
+  }
+};
 
+useEffect(() => {
   fetchAccounts();
 }, []);
 
+
   
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch('/api/users');
-        if (!res.ok) throw new Error('Failed to fetch users');
-        const data = await res.json();
-        setAllUsers(data);
-      } catch (err) {
-        console.error('Error loading users:', err);
-        toast({
-          title: "Error",
-          description: "Unable to load users from server.",
-          variant: "destructive",
-        });
-      }
-    };
-  
-    fetchUsers();
-  }, []);
+const fetchUsers = async () => {
+  try {
+    const res = await fetch('/api/users');
+    if (!res.ok) throw new Error('Failed to fetch users');
+    const data = await res.json();
+    setAllUsers(data);
+  } catch (err) {
+    console.error('Error loading users:', err);
+    toast({
+      title: "Error",
+      description: "Unable to load users from server.",
+      variant: "destructive",
+    });
+  }
+};
+
+useEffect(() => {
+  fetchUsers();
+}, []);
+
   
   
   const [dateRangeGlobal, setDateRangeGlobal] = useState<DateRange | undefined>(undefined); // For global account view (if used for filtering creation date)
@@ -420,6 +422,10 @@ setTimeout(() => {
                     <CardTitle className="text-xl font-semibold text-primary flex items-center">
                         <Users className="mr-2 h-6 w-6" /> All User Accounts (Global View)
                     </CardTitle>
+                    <Button variant="ghost" size="sm" className="ml-auto mt-2" onClick={fetchAccounts}>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refresh Accounts
+                    </Button>
+
                     <CardDescription>View and filter account data across all users. Download aggregated reports.</CardDescription>
                 </div>
                 <div className="w-full md:w-auto md:min-w-[300px]">
@@ -482,6 +488,9 @@ setTimeout(() => {
   <CardHeader>
     <CardTitle className="text-xl font-semibold text-primary flex items-center">
       <ListChecks className="mr-2 h-6 w-6" /> All Transactions (Global View)
+    <Button variant="ghost" size="sm" onClick={fetchAccounts}>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refresh Transactions
+    </Button>
     </CardTitle>
     <CardDescription>Browse all transactions across all users and accounts.</CardDescription>
   </CardHeader>
@@ -533,6 +542,8 @@ setTimeout(() => {
             <CardTitle className="text-xl font-semibold text-primary flex items-center">
                 <User className="mr-2 h-6 w-6" /> View & Download Specific User Data
             </CardTitle>
+            
+
             <CardDescription>Select a user to view their profile, accounts, and download their specific data reports.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
