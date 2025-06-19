@@ -19,36 +19,42 @@ import { useToast } from "@/hooks/use-toast";
 
 
 export default function AdminPage() {
-  // const [allAccounts, setAllAccounts] = useState<Account[]>(MOCK_ACCOUNTS); 
-  // const [allUsers, setAllUsers] = useState<UserDetail[]>(MOCK_USER_DETAILS);
+ 
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [allUsers, setAllUsers] = useState<UserDetail[]>([]);
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const res = await fetch('/api/accounts');
-const rawData = await res.json();
+  const fetchAccounts = async () => {
+    try {
+      const res = await fetch('/api/accounts');
+      const rawData = await res.json();
 
-const parsedData = rawData.map((acc: any) => ({
-  ...acc,
-  balance: parseFloat(acc.balance),
-  transactions: acc.transactions || [],
-}));
+      const parsedData = rawData.map((acc: any) => ({
+        ...acc,
+        balance: parseFloat(acc.balance),
+        transactions: (acc.transactions || []).map((tx: any) => ({
+          id: tx.id || tx.transactionId, // support both
+          date: tx.date,
+          description: tx.description,
+          amount: parseFloat(tx.amount),
+          type: tx.type || tx.transactionType,
+          currency: tx.currency || tx.transactionCurrency,
+        })),
+      }));
 
-setAllAccounts(parsedData);
+      setAllAccounts(parsedData);
+    } catch (err) {
+      console.error('Error loading accounts:', err);
+      toast({
+        title: "Error",
+        description: "Unable to load accounts from server.",
+        variant: "destructive",
+      });
+    }
+  };
 
-      } catch (err) {
-        console.error('Error loading accounts:', err);
-        toast({
-          title: "Error",
-          description: "Unable to load accounts from server.",
-          variant: "destructive",
-        });
-      }
-    };
-  
-    fetchAccounts();
-  }, []);
+  fetchAccounts();
+}, []);
+
   
 
   useEffect(() => {
@@ -311,6 +317,13 @@ setAllAccounts(parsedData);
           };
           newAccountsFromCsv.push(newAccount);
         }
+
+                await fetch('/api/upload-accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newAccountsFromCsv),
+        });
+
         
         if (newAccountsFromCsv.length === 0 && lines.length > 1 && parsingErrors === (lines.length -1) ) {
             toast({ title: "No Valid Data", description: "No valid account data found in the CSV after the header, or all rows had errors.", variant: "destructive" });
@@ -463,6 +476,56 @@ setTimeout(() => {
             </Button>
           </CardFooter>
         </Card>
+
+        <Card className="shadow-lg">
+  <CardHeader>
+    <CardTitle className="text-xl font-semibold text-primary flex items-center">
+      <ListChecks className="mr-2 h-6 w-6" /> All Transactions (Global View)
+    </CardTitle>
+    <CardDescription>Browse all transactions across all users and accounts.</CardDescription>
+  </CardHeader>
+  <CardContent>
+    {allAccounts.length > 0 ? (
+      <div className="overflow-x-auto max-h-[400px] border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Account Number</TableHead>
+              <TableHead>Holder Name</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Type</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {allAccounts.flatMap(account =>
+              account.transactions?.map((tx, i) => (
+                <TableRow key={tx.id + i}>
+                  <TableCell>{format(new Date(tx.date), 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>{tx.description}</TableCell>
+                  <TableCell>{account.accountNumber}</TableCell>
+                  <TableCell>{account.holderName}</TableCell>
+                  <TableCell className={`text-right font-medium ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
+                    {tx.amount.toFixed(2)} {tx.currency}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-xs rounded-full ${tx.type === 'credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {tx.type}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    ) : (
+      <p className="text-muted-foreground text-center py-4">No transactions found.</p>
+    )}
+  </CardContent>
+</Card>
+
 
         <Card className="shadow-lg">
           <CardHeader>
