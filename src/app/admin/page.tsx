@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ProtectedRoute from '@/components/protected-route';
-// import { MOCK_ACCOUNTS, MOCK_USER_DETAILS } from '@/data/mock';
+import CreateAccountForm from '@/components/CreateAccountForm';
 import type { Account, UserDetail, Transaction } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -656,29 +656,15 @@ setTimeout(() => {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-primary flex items-center">
-                <Upload className="mr-2 h-6 w-6" /> Upload Account Data (CSV)
+                <Upload className="mr-2 h-6 w-6" /> Create New Account
             </CardTitle>
-            <CardDescription>Upload a CSV file with account data. Expected columns: id, accountNumber, holderName, balance, currency, type, userId. Existing accounts are updated if core data matches (transactions reset); otherwise, original data is preserved. New accounts are added.</CardDescription>
+            <CardDescription>Fill the form to add a new account for an existing user.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleFileUpload} className="space-y-4">
-              <div>
-                <Label htmlFor="excel-upload">Select CSV File (.csv)</Label>
-                <Input 
-                  id="excel-upload" 
-                  type="file" 
-                  accept=".csv"
-                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} 
-                  className="mt-1"
-                />
-              </div>
-              <Button type="submit" disabled={!file || isUploading}>
-                {isUploading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Upload className="mr-2 h-5 w-5" />}
-                Upload File
-              </Button>
-            </form>
+            <CreateAccountForm />
           </CardContent>
         </Card>
+
       </div>
     </ProtectedRoute>
   );
