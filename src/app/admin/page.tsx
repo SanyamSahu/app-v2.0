@@ -17,6 +17,8 @@ import { Download, FileSpreadsheet, FileText, Upload, Users, Filter, ShieldAlert
 import { format } from 'date-fns';
 import CreateTransactionForm from '@/components/CreateTransactionForm';
 import { useToast } from "@/hooks/use-toast";
+import UploadTransactionForm from '@/components/UploadTransactionForm';
+
 
 
 export default function AdminPage() {
@@ -666,16 +668,29 @@ setTimeout(() => {
         </Card>
           
           <Card className="shadow-lg">
-  <CardHeader>
-    <CardTitle className="text-xl font-semibold text-primary flex items-center">
-      <Upload className="mr-2 h-6 w-6" /> Add Manual Transaction
-    </CardTitle>
-    <CardDescription>Use the form below to manually add a transaction to any account.</CardDescription>
-  </CardHeader>
-  <CardContent>
-    <CreateTransactionForm />
-  </CardContent>
-</Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-primary flex items-center">
+              <Upload className="mr-2 h-6 w-6" /> Add Manual Transaction
+            </CardTitle>
+            <CardDescription>Use the form below to manually add a transaction to any account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CreateTransactionForm />
+          </CardContent>
+        </Card>
+
+
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-primary flex items-center">
+              <Upload className="mr-2 h-6 w-6" /> Upload Transactions from CSV
+            </CardTitle>
+            <CardDescription>Upload a CSV file with multiple transactions for bulk entry.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UploadTransactionForm />
+          </CardContent>
+        </Card>
 
 
         <Card className="shadow-lg">
