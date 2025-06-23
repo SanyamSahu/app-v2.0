@@ -3,10 +3,6 @@
 import type { User } from '@/types';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-/*
-// Removed server-only imports that caused mysql2 error!
-// import { getUserByUsername, validateUserCredentials, updateUserPassword } from '@/lib/user-db';
-*/
 
 interface AuthContextType {
   user: User | null;

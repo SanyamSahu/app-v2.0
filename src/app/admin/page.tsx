@@ -18,6 +18,8 @@ import { format } from 'date-fns';
 import CreateTransactionForm from '@/components/CreateTransactionForm';
 import { useToast } from "@/hooks/use-toast";
 import UploadTransactionForm from '@/components/UploadTransactionForm';
+import { useAuth } from '@/contexts/auth-context';
+
 
 
 
@@ -25,6 +27,10 @@ export default function AdminPage() {
  
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [allUsers, setAllUsers] = useState<UserDetail[]>([]);
+  const [newPassword, setNewPassword] = useState('');
+  const { user } = useAuth();
+  const [confirmChange, setConfirmChange] = useState(false);
+
 const fetchAccounts = async () => {
   try {
     const res = await fetch('/api/accounts');
@@ -440,11 +446,7 @@ setTimeout(() => {
                     />
                 </div>
             </div>
-            {/* Date Picker for Global View (if needed for filtering accounts by creation date, not implemented yet) */}
-            {/* <div className="mt-4 w-full md:w-1/2 lg:w-1/3">
-                <Label className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Filter className="mr-2 h-4 w-4" /> Filter by Date (e.g., Account Opening)</Label>
-                <DatePickerWithRange date={dateRangeGlobal} setDate={setDateRangeGlobal} />
-            </div> */}
+            
           </CardHeader>
           <CardContent>
             {filteredGlobalAccounts.length > 0 ? (
@@ -606,6 +608,63 @@ setTimeout(() => {
                   ) : (
                     <p className="text-muted-foreground">No accounts found for this user.</p>
                   )}
+
+                        {selectedUserDetail && (
+                          <section className="border-t pt-4">
+                          <h3 className="text-lg font-semibold text-primary mb-2">🔐 Change Password for This User</h3>
+                          <div className="space-y-4">
+                            <Input
+                              type="password"
+                              placeholder="Enter new password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              disabled={!selectedUserDetail}
+                            />
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={confirmChange}
+                                onChange={(e) => setConfirmChange(e.target.checked)}
+                              />
+                              <span className="text-sm text-muted-foreground">I confirm I want to change this user's password.</span>
+                            </label>
+                            <Button
+                              variant="destructive"
+                              disabled={!newPassword || !confirmChange || !selectedUserDetail}
+                              onClick={async () => {
+                                const confirm = window.confirm(
+                                  `Are you sure you want to change the password for "${selectedUserDetail?.name}"?`
+                                );
+                                if (!confirm) return;
+                              
+                                const res = await fetch('/api/admin/change-user-password', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    adminId: user?.id,
+                                    targetUserId: selectedUserId,
+                                    newPassword,
+                                  }),
+                                });
+                              
+                                const data = await res.json();
+                                toast({
+                                  title: data.success ? "Success" : "Error",
+                                  description: data.message,
+                                  variant: data.success ? "default" : "destructive",
+                                });
+                              
+                                if (data.success) {
+                                  setNewPassword('');
+                                  setConfirmChange(false);
+                                }
+                              }}
+                            >
+                              Update Password
+                            </Button>
+                          </div>
+                        </section>
+                        )}                        
                 </section>
 
                 <section>
@@ -706,6 +765,9 @@ setTimeout(() => {
         </Card>
 
       </div>
+
+
+
     </ProtectedRoute>
   );
 }
