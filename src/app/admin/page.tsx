@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatePickerWithRange } from '@/components/date-picker-with-range';
-import type { DateRange } from 'react-day-picker';
+type DateRange = { from?: Date; to?: Date };
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileSpreadsheet, FileText, Upload, Users, Filter, ShieldAlert, Loader2, User, Mail, Phone, Home as HomeIcon, ListChecks } from 'lucide-react';
 import { format } from 'date-fns';

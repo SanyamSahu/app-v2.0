@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: accountview-app-prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: accountview-db-prod
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: accountdb
+    ports:
+      - "33307:3306"
+    volumes:
+      - mysql-data-prod:/var/lib/mysql
+
+volumes:
+  mysql-data-prod:
