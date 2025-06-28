@@ -18,7 +18,7 @@ services:
     tty: true
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.39
     container_name: accountview-db-prod
     restart: unless-stopped
     environment:
